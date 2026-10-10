@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repocast"
+dynamic = ["version"]
+description = "Turn any repo's changes into accurate, ready-to-post X posts, and post them safely (OAuth 1.0a, threads, dedup, caps, kill switch)."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Joshua Almeida" }]
+requires-python = ">=3.10"
+dependencies = ["tomli>=2; python_version < '3.11'"]
+keywords = ["x", "twitter", "bot", "changelog", "github-action", "release-notes", "automation"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Build Tools",
+  "Topic :: Communications",
+]
+
+[project.optional-dependencies]
+knoblog = ["knoblog>=0.1"]
+
+[project.urls]
+Homepage = "https://github.com/fitzyracing1/repocast"
+Issues = "https://github.com/fitzyracing1/repocast/issues"
+
+[project.scripts]
+repocast = "repocast.cli:main"
+
+[tool.setuptools]
+packages = ["repocast"]
+
+[tool.setuptools.dynamic]
+version = { attr = "repocast.__version__" }

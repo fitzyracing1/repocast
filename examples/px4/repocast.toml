@@ -1,0 +1,25 @@
+# knoblog -> X for PX4 firmware parameter defaults.
+#   knoblog run --config examples/px4.yml --out site          # writes site/feed.json (see the knoblog repo)
+#   repocast run -c examples/px4/repocast.toml                 # appends to ./outbox, posts nothing
+# Switch backend to "x" (plus account, REPOCAST_LIVE=true and the X_* secrets) when a human has reviewed the outbox.
+
+[input]
+path = "feed.json"
+
+[format]
+mode = "prebuilt"
+disclaimer = "Values are PX4 firmware defaults in the repo."
+trusted_text = ["PX4 update"]
+
+[filter]
+exclude_files = "(^|/)(test|tests)/"
+
+[post]
+backend = "outbox"
+outbox = "outbox"
+state = "state.json"
+max_per_run = 2
+max_per_day = 4
+stale_after_hours = 0         # 0 = never treat as stale (useful for a review queue)
+quiet_hours = "22:00-07:00"
+timezone = "Europe/Zurich"

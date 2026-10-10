@@ -1,0 +1,50 @@
+# Copy to .github/workflows/ in the repo that runs your bot.
+# Posting is OFF until you set the repository VARIABLE REPOCAST_LIVE=true and the four X_* secrets.
+# Emergency stop: set the repository variable REPOCAST_KILL_SWITCH=true (takes effect on the next run).
+name: post changes to X
+on:
+  schedule: [{ cron: "17 */3 * * *" }]
+  workflow_dispatch:
+
+permissions:
+  contents: write          # to commit the dedup state file back
+
+concurrency:
+  group: repocast          # never two runs at once (two runs could both post the same change)
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # 1) produce structured change data. knoblog is the preferred source:
+      - uses: fitzyracing1/knoblog@v0
+        with:
+          config: knoblog.yml
+          out: site
+      #    ...or the built-in simple diff:
+      # - run: pip install repocast && repocast diff --repo upstream --range HEAD~10..HEAD -o items.json
+
+      # 2) compose, gate, post (or dry-run / outbox)
+      - id: rc
+        uses: fitzyracing1/repocast@v0
+        with:
+          config: repocast.toml
+        env:
+          REPOCAST_LIVE: ${{ vars.REPOCAST_LIVE }}
+          REPOCAST_KILL_SWITCH: ${{ vars.REPOCAST_KILL_SWITCH }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+
+      # 3) persist the dedup state, or the next run would not know what was posted
+      - if: steps.rc.outputs.state_changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .repocast/state.json
+          git commit -m "repocast: update post state"
+          git push

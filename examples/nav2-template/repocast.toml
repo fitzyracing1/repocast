@@ -1,0 +1,28 @@
+# Your own words instead of knoblog's: a custom {placeholder} template over knoblog's Nav2 change records.
+#   repocast preview -c examples/nav2-template/repocast.toml
+
+[input]
+path = "feed.json"
+
+[format]
+mode = "template"
+project = "Nav2"
+date_format = "%b %-d"
+max_lines = 4
+max_posts = 3
+name_style = "slash"          # velocity_smoother/max_accel: never auto-linked as a domain
+honor_skips = true            # knoblog already decided some commits are not worth a post
+
+[format.templates]
+header = "🤖 {project} defaults changed ({date}) ⚙️\n▸ {lead}"
+bullet = "▸ "
+line = "{name}: {old} → {new} ({change})"
+text_line = "{name}: {old} → {new}"
+flag_line = "{name}: {new}"
+added_line = "new {name} = {new}"
+removed_line = "dropped {name} (was {old})"
+more_line = "…and {more} more"
+footer = "\n🔗 {commit_url}"
+
+[post]
+backend = "dry-run"

@@ -1,0 +1,22 @@
+# Reproduces the @XAlgoChangelog bot (x-algorithm-changelog) on top of knoblog's output.
+#   knoblog run --config examples/x-algorithm.yml --out site    # in the tracker repo; writes site/feed.json
+#   repocast preview -c examples/x-algorithm/repocast.toml
+#   repocast run     -c examples/x-algorithm/repocast.toml      # dry run unless REPOCAST_LIVE=true + X_* secrets
+
+[input]
+path = "feed.json"            # knoblog's JSON Feed: change records + ready-made post text per commit
+
+[format]
+mode = "prebuilt"             # post knoblog's text as-is; repocast still re-checks every number against the changes
+disclaimer = "Unofficial tracker; values are repo defaults, not confirmed live settings."
+trusted_text = ["X algorithm update"]
+max_posts = 4
+
+[post]
+backend = "x"
+account = "XAlgoChangelog"    # refuses to post unless GET /2/users/me says the token belongs to @XAlgoChangelog
+state = "state.json"
+max_per_run = 1
+max_per_day = 3
+stale_after_hours = 72
+max_attempts = 2

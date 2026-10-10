@@ -1,0 +1,55 @@
+name: repocast
+description: Turn a repo's changes into accurate X posts (threads, dedup, caps, kill switch) and post them, queue them, or dry-run.
+author: Joshua Almeida
+branding:
+  icon: send
+  color: gray-dark
+
+inputs:
+  config:
+    description: Path to repocast.toml.
+    default: repocast.toml
+  input:
+    description: Override [input].path (knoblog feed.json / changes.json, or repocast items JSON).
+    default: ""
+  backend:
+    description: Override [post].backend (x, outbox, dry-run, module:Class). Empty = use the config.
+    default: ""
+  command:
+    description: "run (default) or preview."
+    default: run
+  python-version:
+    description: Python to set up.
+    default: "3.12"
+
+outputs:
+  posted:
+    description: Threads posted (or queued) in this run.
+    value: ${{ steps.rc.outputs.posted }}
+  would_post:
+    description: Threads that would have been posted (dry run).
+    value: ${{ steps.rc.outputs.would_post }}
+  state_changed:
+    description: "'true' when the state file changed and should be committed/persisted."
+    value: ${{ steps.rc.outputs.state_changed }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ inputs.python-version }}
+    - shell: bash
+      run: python -m pip install --disable-pip-version-check -q "${{ github.action_path }}"
+    - id: rc
+      shell: bash
+      env:
+        RC_CONFIG: ${{ inputs.config }}
+        RC_INPUT: ${{ inputs.input }}
+        RC_BACKEND: ${{ inputs.backend }}
+        RC_COMMAND: ${{ inputs.command }}
+      run: |
+        args=("$RC_COMMAND" --config "$RC_CONFIG")
+        [ -n "$RC_INPUT" ] && args+=(--input "$RC_INPUT")
+        [ -n "$RC_BACKEND" ] && [ "$RC_COMMAND" = run ] && args+=(--backend "$RC_BACKEND")
+        repocast "${args[@]}"
