@@ -1,0 +1,56 @@
+# Proves the published reference `fitzyracing1/repocast@v0` resolves and runs, exactly as users consume it.
+# Never posts: dry-run / outbox only, and no X credentials exist in this repo.
+name: action-smoke
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '43 7 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: preview (x-algorithm, prebuilt knoblog text)
+        uses: fitzyracing1/repocast@v0
+        with:
+          config: examples/x-algorithm/repocast.toml
+          command: preview
+
+      - name: run with backend x but no credentials -> must be a dry run that records nothing
+        id: dry
+        uses: fitzyracing1/repocast@v0
+        with:
+          config: examples/x-algorithm/repocast.toml
+      - run: |
+          test "${{ steps.dry.outputs.state_changed }}" = "false"
+          test ! -e examples/x-algorithm/state.json
+
+      - name: outbox run 1 (baseline, no backfill)
+        id: ob1
+        uses: fitzyracing1/repocast@v0
+        with:
+          config: examples/px4/repocast.toml
+          backend: outbox
+      - name: outbox run 2 (nothing new)
+        id: ob2
+        uses: fitzyracing1/repocast@v0
+        with:
+          config: examples/px4/repocast.toml
+          backend: outbox
+      - run: |
+          test "${{ steps.ob1.outputs.state_changed }}" = "true"
+          test "${{ steps.ob2.outputs.posted }}" = "0"
+          python3 -c "import json; s=json.load(open('examples/px4/state.json')); assert len(s['items'])==19, len(s['items'])"
+          test ! -e examples/px4/outbox/outbox.jsonl
+
+      - name: preview (Nav2 custom template)
+        id: nav2
+        uses: fitzyracing1/repocast@v0
+        with:
+          config: examples/nav2-template/repocast.toml
+          command: preview
