@@ -235,3 +235,8 @@ python -m unittest discover -s tests -v      # no network: the X API is mocked
 ```
 
 MIT licensed. © 2026 Joshua Almeida.
+
+## Documentation
+
+- In-repo docs: [docs/](docs/index.md)
+- Wiki: [https://github.com/fitzyracing1/repocast/wiki](https://github.com/fitzyracing1/repocast/wiki)
