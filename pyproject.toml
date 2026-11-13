@@ -26,6 +26,7 @@ knoblog = ["knoblog>=0.1"]
 [project.urls]
 Homepage = "https://github.com/fitzyracing1/repocast"
 Issues = "https://github.com/fitzyracing1/repocast/issues"
+Funding = "https://github.com/sponsors/fitzyracing1"
 
 [project.scripts]
 repocast = "repocast.cli:main"
